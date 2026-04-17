@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Посредник CRM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&display=swap');
+
+/* ── THEMES ── */
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--surface3:#e8e7e0;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --text:#1a1a18;--text2:#6b6b65;--text3:#9e9e96;
+  --green:#1a8a5a;--gbg:#e8f5ee;--gborder:#a3d4b8;
+  --amber:#9a6200;--abg:#fff3d6;--aborder:#f0c86a;
+  --red:#c0392b;--rbg:#fdecea;--rborder:#f5b8b2;
+  --blue:#1a5fa8;--bbg:#e8f0fb;--bborder:#a8c4ed;
+  --purple:#5a3ab7;--pbg:#eeebfd;
+  --accent:#1a8a5a;--accent-bg:#e8f5ee;
+  --r:10px;--rs:6px;--nav-h:60px;
+}
+[data-theme="dark"]{
+  --bg:#151518;--surface:#1e1e23;--surface2:#26262d;--surface3:#2e2e38;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#e8e8e4;--text2:#9a9a94;--text3:#5a5a58;
+  --green:#2ab87a;--gbg:rgba(42,184,122,0.12);--gborder:rgba(42,184,122,0.3);
+  --amber:#e0a030;--abg:rgba(224,160,48,0.12);--aborder:rgba(224,160,48,0.3);
+  --red:#e05555;--rbg:rgba(224,85,85,0.12);--rborder:rgba(224,85,85,0.3);
+  --blue:#4a90e8;--bbg:rgba(74,144,232,0.12);--bborder:rgba(74,144,232,0.3);
+  --purple:#8b72e8;--pbg:rgba(139,114,232,0.12);
+  --accent:#2ab87a;--accent-bg:rgba(42,184,122,0.12);
+}
+[data-theme="slate"]{
+  --bg:#0f1117;--surface:#161b27;--surface2:#1c2235;--surface3:#222a3f;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#d8e0f0;--text2:#7a8aaa;--text3:#404a60;
+  --green:#3dd68c;--gbg:rgba(61,214,140,0.1);--gborder:rgba(61,214,140,0.25);
+  --amber:#f5a623;--abg:rgba(245,166,35,0.1);--aborder:rgba(245,166,35,0.25);
+  --red:#f05a5a;--rbg:rgba(240,90,90,0.1);--rborder:rgba(240,90,90,0.25);
+  --blue:#5b9cf6;--bbg:rgba(91,156,246,0.1);--bborder:rgba(91,156,246,0.25);
+  --purple:#a78bfa;--pbg:rgba(167,139,250,0.1);
+  --accent:#3dd68c;--accent-bg:rgba(61,214,140,0.1);
+}
+[data-theme="graphite"]{
+  --bg:#1a1a1a;--surface:#242424;--surface2:#2e2e2e;--surface3:#383838;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.16);
+  --text:#e2e2e0;--text2:#8a8a88;--text3:#505050;
+  --green:#50c878;--gbg:rgba(80,200,120,0.12);--gborder:rgba(80,200,120,0.28);
+  --amber:#ffb347;--abg:rgba(255,179,71,0.12);--aborder:rgba(255,179,71,0.28);
+  --red:#ff6b6b;--rbg:rgba(255,107,107,0.12);--rborder:rgba(255,107,107,0.28);
+  --blue:#6aacff;--bbg:rgba(106,172,255,0.12);--bborder:rgba(106,172,255,0.28);
+  --purple:#c4b0ff;--pbg:rgba(196,176,255,0.12);
+  --accent:#50c878;--accent-bg:rgba(80,200,120,0.12);
+}
+[data-theme="warmstone"]{
+  --bg:#1c1915;--surface:#232019;--surface2:#2c2820;--surface3:#35302a;
+  --border:rgba(255,240,200,0.08);--border2:rgba(255,240,200,0.15);
+  --text:#ede8d8;--text2:#9a9080;--text3:#5a5248;
+  --green:#7ec87a;--gbg:rgba(126,200,122,0.12);--gborder:rgba(126,200,122,0.28);
+  --amber:#f0c060;--abg:rgba(240,192,96,0.12);--aborder:rgba(240,192,96,0.28);
+  --red:#f08070;--rbg:rgba(240,128,112,0.12);--rborder:rgba(240,128,112,0.28);
+  --blue:#80b8f0;--bbg:rgba(128,184,240,0.12);--bborder:rgba(128,184,240,0.28);
+  --purple:#c8a8f0;--pbg:rgba(200,168,240,0.12);
+  --accent:#f0c060;--accent-bg:rgba(240,192,96,0.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Golos Text',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;transition:background .2s,color .2s}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);padding:1.25rem 0;position:sticky;top:0;height:100vh;flex-shrink:0;overflow-y:auto;transition:background .2s}
+.sidebar-logo{padding:0 1rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.sidebar-logo .title{font-size:14px;font-weight:600;color:var(--text)}
+.sidebar-logo .sub{font-size:11px;color:var(--text3);margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 1rem;cursor:pointer;font-size:13px;color:var(--text2);border-left:2px solid transparent;transition:all .15s;background:none;border-top:none;border-right:none;width:100%;text-align:left;font-family:inherit}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent);font-weight:500}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.main{flex:1;padding:1.5rem;max-width:900px}
+
+/* ── Theme picker in sidebar ── */
+.theme-picker{padding:.75rem 1rem;border-top:1px solid var(--border);margin-top:.5rem}
+.theme-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.theme-swatches{display:flex;gap:6px;flex-wrap:wrap}
+.swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0}
+.swatch:hover{transform:scale(1.15)}
+.swatch.active{border-color:var(--accent)}
+.swatch-light{background:linear-gradient(135deg,#f5f4f0 50%,#fff 50%)}
+.swatch-dark{background:linear-gradient(135deg,#151518 50%,#1e1e23 50%)}
+.swatch-slate{background:linear-gradient(135deg,#0f1117 50%,#161b27 50%)}
+.swatch-graphite{background:linear-gradient(135deg,#1a1a1a 50%,#242424 50%)}
+.swatch-warmstone{background:linear-gradient(135deg,#1c1915 50%,#f0c060 50%)}
+
+/* ── Mobile nav ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;height:var(--nav-h)}
+.mobile-nav-inner{display:flex;height:100%}
+.mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--text3);padding:6px 2px;transition:color .15s}
+.mnav-item.active{color:var(--accent)}
+.mnav-icon{font-size:22px;line-height:1}
+.mnav-label{font-size:10px;font-weight:500}
+
+/* ── Buttons ── */
+.btn{font-size:13px;padding:7px 14px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--surface3)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);filter:brightness(1)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.avito{background:#00aaff;color:#fff;border-color:#0088cc}.btn.avito:hover{background:#0088cc}
+.btn.danger{background:var(--rbg);color:var(--red);border-color:var(--rborder)}
+.btn.amber{background:var(--abg);color:var(--amber);border-color:var(--aborder)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;border:1px solid var(--border2);border-radius:var(--rs);overflow:hidden;width:fit-content}
+.btn-group button{border:none;border-right:1px solid var(--border2);padding:7px 16px;font-size:13px;cursor:pointer;background:var(--surface2);color:var(--text2);font-family:inherit;transition:all .15s}
+.btn-group button:last-child{border-right:none}
+.btn-group button.active{background:var(--accent);color:#fff;font-weight:500}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1rem}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.stat-val{font-size:22px;font-weight:600}
+.stat-val.g{color:var(--green)}.stat-val.b{color:var(--blue)}
+
+/* ── Market bar ── */
+.market-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1.25rem;display:flex;align-items:center;gap:16px;margin-bottom:1rem;flex-wrap:wrap}
+.market-bar-label{font-size:13px;color:var(--text2);flex:1}
+.market-bar-label strong{color:var(--text)}
+.market-input{font-size:15px;font-weight:600;padding:5px 10px;width:110px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;color:var(--text);background:var(--surface2)}
+
+/* ── Filters ── */
+.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filters input,.filters select{font-size:13px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;color:var(--text);background:var(--surface)}
+.filters input{flex:1;min-width:140px}
+
+/* ── Cards ── */
+.cards{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);border-left:4px solid transparent;overflow:hidden;transition:box-shadow .15s,background .2s}
+.card:hover{box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.card.below{border-left-color:var(--green)}.card.above{border-left-color:var(--red)}.card.unknown{border-left-color:var(--border2)}
+.card-head{display:flex;align-items:center;gap:10px;padding:.875rem 1rem;cursor:pointer}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--green);flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:500}
+.card-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.card-badges{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.card-price{text-align:right;flex-shrink:0}
+.price-val{font-size:16px;font-weight:600}
+.price-diff{font-size:11px;margin-top:2px}
+.price-diff.below{color:var(--green)}.price-diff.above{color:var(--red)}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;border:1px solid transparent}
+.tag.new{background:var(--surface2);color:var(--text2);border-color:var(--border)}
+.tag.called{background:var(--bbg);color:var(--blue);border-color:var(--bborder)}
+.tag.interested{background:var(--abg);color:var(--amber);border-color:var(--aborder)}
+.tag.partner{background:var(--gbg);color:var(--green);border-color:var(--gborder)}
+.tag.declined{background:var(--rbg);color:var(--red);border-color:var(--rborder)}
+.tag.noanswer{background:var(--pbg);color:var(--purple);border-color:var(--pbg)}
+.card-detail{border-top:1px solid var(--border);padding:.875rem 1rem;display:none;background:var(--surface2)}
+.card-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin-bottom:.875rem}
+.drow{padding:4px 0;font-size:13px}
+.dl{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.dv{font-weight:500}
+.note-ta{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;resize:none;height:60px;background:var(--surface);color:var(--text);margin-bottom:10px}
+.action-row{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Form ── */
+.quick-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:1rem;display:none}
+.quick-form.open{display:block}
+.form-title{font-size:13px;font-weight:600;margin-bottom:.875rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid .full{grid-column:1/-1}
+.fg label{font-size:11px;color:var(--text2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.fg input,.fg select,.fg textarea{width:100%;font-size:13px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;background:var(--bg);color:var(--text)}
+.form-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+
+/* ── Script ── */
+.script-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.script-title{font-size:14px;font-weight:600;margin-bottom:1rem}
+.script-step{display:flex;gap:12px;margin-bottom:1rem}
+.script-step:last-child{margin-bottom:0}
+.snum{width:24px;height:24px;border-radius:50%;background:var(--gbg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--green);flex-shrink:0;margin-top:1px}
+.stext{font-size:13px;line-height:1.6}
+.stext em{color:var(--blue);font-style:normal;font-weight:500}
+.shint{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* ── Calc ── */
+.calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.calc-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.calc-row:last-child{margin-bottom:0}
+.calc-label{font-size:13px;color:var(--text2);min-width:200px}
+.calc-inp{font-size:14px;font-weight:500;padding:7px 12px;width:130px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;color:var(--text);background:var(--surface2)}
+.calc-result{border-radius:var(--r);padding:1.125rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem;border:1px solid var(--gborder);background:var(--gbg)}
+.calc-result.warn{border-color:var(--rborder);background:var(--rbg)}
+.cr-label{font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.04em}
+.calc-result.warn .cr-label{color:var(--red)}
+.cr-val{font-size:20px;font-weight:600;color:var(--green);margin-top:2px}
+.calc-result.warn .cr-val{color:var(--red)}
+.calc-divider{border:none;border-top:1px solid var(--border);margin:1rem 0}
+.mode-hint{font-size:12px;color:var(--text3);margin-bottom:1rem;line-height:1.5}
+.range-wrap{display:flex;align-items:center;gap:10px;flex:1}
+.range-wrap input[type=range]{flex:1;accent-color:var(--accent)}
+.range-val{font-size:15px;font-weight:600;min-width:40px;color:var(--accent)}
+
+/* ── Partners ── */
+.partner-card{background:var(--surface);border:1px solid var(--gborder);border-radius:var(--r);border-left:4px solid var(--green);padding:1rem 1.25rem;margin-bottom:8px}
+.partner-head{display:flex;align-items:center;gap:10px}
+.partner-actions{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* ── Settings ── */
+.settings-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.settings-title{font-size:14px;font-weight:600;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.setting-row{display:flex;flex-direction:column;gap:4px;margin-bottom:.875rem}
+.setting-row label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em}
+.setting-row input,.setting-row textarea{font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;background:var(--bg);color:var(--text);width:100%}
+.setting-row textarea{resize:vertical;min-height:70px}
+.setting-hint{font-size:11px;color:var(--text3);margin-top:3px}
+.sec-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;margin-top:4px}
+.step-editor{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px;margin-bottom:8px}
+.step-editor-row{display:flex;align-items:flex-start;gap:8px}
+.step-editor textarea{flex:1;font-size:13px;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;resize:vertical;min-height:52px;background:var(--surface);color:var(--text)}
+.step-editor input[type=text]{width:100%;font-size:12px;padding:4px 8px;border:1px solid var(--border2);border-radius:var(--rs);font-family:inherit;margin-top:4px;background:var(--surface);color:var(--text2)}
+
+/* ── Misc ── */
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.topbar h1{font-size:18px;font-weight:600;flex:1}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:14px}
+.info-banner{background:var(--gbg);border:1px solid var(--gborder);border-radius:var(--r);padding:.875rem 1.25rem;margin-bottom:1rem;font-size:13px;color:var(--green)}
+.sync-banner{border-radius:var(--r);padding:.75rem 1.25rem;margin-bottom:1rem;font-size:13px}
+.sync-banner.ok{background:var(--gbg);border:1px solid var(--gborder);color:var(--green)}
+.sync-banner.err{background:var(--rbg);border:1px solid var(--rborder);color:var(--red)}
+#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--surface3);color:var(--text);padding:8px 18px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none;border:1px solid var(--border2)}
+
+@media(max-width:640px){
+  .sidebar{display:none}
+  .mobile-nav{display:block}
+  .main{padding:1rem 1rem calc(var(--nav-h) + 1rem)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .form-grid,.detail-grid{grid-template-columns:1fr}
+  .calc-label{min-width:unset;width:100%}
+  .calc-inp{width:100%}
+}
+</style>
+</head>
+<body data-theme="dark">
+<div id="toast"></div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="title">Посредник CRM</div>
+      <div class="sub" id="sidebar-sub">Ставрополь · бурение</div>
+    </div>
+    <button class="nav-item active" data-tab="scouting" onclick="switchTab('scouting',this)"><span class="nav-icon">🔍</span> Разведка</button>
+    <button class="nav-item" data-tab="partners" onclick="switchTab('partners',this)"><span class="nav-icon">🤝</span> Партнёры</button>
+    <button class="nav-item" data-tab="script" onclick="switchTab('script',this)"><span class="nav-icon">📋</span> Скрипт</button>
+    <button class="nav-item" data-tab="calc" onclick="switchTab('calc',this)"><span class="nav-icon">🧮</span> Калькулятор</button>
+    <button class="nav-item" data-tab="settings" onclick="switchTab('settings',this)"><span class="nav-icon">⚙️</span> Настройки</button>
+
+    <div class="theme-picker">
+      <div class="theme-label">Тема</div>
+      <div class="theme-swatches">
+        <div class="swatch swatch-light" title="Светлая" onclick="setTheme('light')"></div>
+        <div class="swatch swatch-dark active" title="Тёмная" onclick="setTheme('dark')"></div>
+        <div class="swatch swatch-slate" title="Синяя" onclick="setTheme('slate')"></div>
+        <div class="swatch swatch-graphite" title="Графит" onclick="setTheme('graphite')"></div>
+        <div class="swatch swatch-warmstone" title="Янтарь" onclick="setTheme('warmstone')"></div>
+      </div>
+    </div>
+  </aside>
+
+  <nav class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <button class="mnav-item active" data-tab="scouting" onclick="switchTab('scouting',this)"><span class="mnav-icon">🔍</span><span class="mnav-label">Разведка</span></button>
+      <button class="mnav-item" data-tab="partners" onclick="switchTab('partners',this)"><span class="mnav-icon">🤝</span><span class="mnav-label">Партнёры</span></button>
+      <button class="mnav-item" data-tab="script" onclick="switchTab('script',this)"><span class="mnav-icon">📋</span><span class="mnav-label">Скрипт</span></button>
+      <button class="mnav-item" data-tab="calc" onclick="switchTab('calc',this)"><span class="mnav-icon">🧮</span><span class="mnav-label">Калькулятор</span></button>
+      <button class="mnav-item" data-tab="settings" onclick="switchTab('settings',this)"><span class="mnav-icon">⚙️</span><span class="mnav-label">Настройки</span></button>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- РАЗВЕДКА -->
+    <div id="tab-scouting">
+      <div class="topbar">
+        <h1 id="scout-title">Разведка рынка</h1>
+        <button class="btn avito" onclick="openAvito()">Авито →</button>
+        <button class="btn" onclick="toggleForm()">+ Добавить</button>
+        <button class="btn" onclick="exportCSV()">CSV</button>
+      </div>
+      <div id="sync-status"></div>
+      <div class="stats" id="scout-stats"></div>
+      <div class="market-bar">
+        <div class="market-bar-label"><strong>Средняя цена рынка</strong> — выставь после 5–7 звонков</div>
+        <input class="market-input" type="number" id="market-price" value="2200" step="100" oninput="save();recalc()">
+        <span style="font-size:13px;color:var(--text2)" id="market-unit">₽/м</span>
+      </div>
+      <div class="filters">
+        <input type="text" id="f-search" placeholder="Поиск..." oninput="renderScouting()">
+        <select id="f-status" onchange="renderScouting()">
+          <option value="">Все статусы</option>
+          <option value="new">Не обзвонен</option>
+          <option value="noanswer">Не берёт трубку</option>
+          <option value="called">Обзвонен</option>
+          <option value="interested">Заинтересован</option>
+          <option value="partner">Партнёр</option>
+          <option value="declined">Отказ</option>
+        </select>
+        <select id="f-price-cat" onchange="renderScouting()">
+          <option value="">Все цены</option>
+          <option value="below">Ниже рынка</option>
+          <option value="above">Выше рынка</option>
+          <option value="unknown">Неизвестна</option>
+        </select>
+      </div>
+      <div class="quick-form" id="quickForm">
+        <div class="form-title">Новый подрядчик</div>
+        <div class="form-grid">
+          <div class="fg full"><label>Имя / компания</label><input type="text" id="a-name" placeholder="Иван Буров / ООО АкваДрель"></div>
+          <div class="fg"><label>Телефон</label><input type="text" id="a-phone" placeholder="+7..."></div>
+          <div class="fg"><label id="a-price-lbl">Цена ₽/м</label><input type="number" id="a-price" placeholder="1800"></div>
+          <div class="fg"><label>Объём / размер</label><input type="number" id="a-depth" placeholder="70"></div>
+          <div class="fg"><label>Ссылка Авито</label><input type="text" id="a-url" placeholder="https://avito.ru/..."></div>
+          <div class="fg full"><label>Заметки</label><textarea id="a-note" rows="2" placeholder="Оборудование, опыт, нюансы..."></textarea></div>
+        </div>
+        <div class="form-footer">
+          <button class="btn" onclick="toggleForm()">Отмена</button>
+          <button class="btn primary" onclick="addContractor()">Добавить</button>
+        </div>
+      </div>
+      <div class="cards" id="scout-list"></div>
+    </div>
+
+    <!-- ПАРТНЁРЫ -->
+    <div id="tab-partners" style="display:none">
+      <div class="topbar"><h1>Партнёры</h1></div>
+      <div class="info-banner">Подрядчики с ценой ниже рынка — им ты уже предложил посредничество</div>
+      <div id="partners-list"></div>
+    </div>
+
+    <!-- СКРИПТ -->
+    <div id="tab-script" style="display:none">
+      <div class="topbar"><h1>Скрипт звонка</h1></div>
+      <div id="script-content"></div>
+    </div>
+
+    <!-- КАЛЬКУЛЯТОР -->
+    <div id="tab-calc" style="display:none">
+      <div class="topbar"><h1>Калькулятор маржи</h1></div>
+
+      <!-- Переключатель режима -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--text2)">Режим:</span>
+        <div class="btn-group">
+          <button id="mode-markup" class="active" onclick="setCalcMode('markup')">Наценка к цене</button>
+          <button id="mode-pct" onclick="setCalcMode('pct')">% от сделки подрядчика</button>
+        </div>
+      </div>
+
+      <!-- РЕЖИМ 1: наценка -->
+      <div class="calc-block" id="calc-markup-block">
+        <div class="mode-hint">Ты продаёшь услугу клиенту дороже чем покупаешь у подрядчика. Разница — твоя маржа.</div>
+        <div class="calc-row">
+          <span class="calc-label" id="c-sub-lbl">Цена подрядчика (₽/м)</span>
+          <input class="calc-inp" type="number" id="c-sub" value="1800" step="50" oninput="calcMargin()">
+        </div>
+        <div class="calc-row">
+          <span class="calc-label" id="c-cli-lbl">Твоя цена клиенту (₽/м)</span>
+          <input class="calc-inp" type="number" id="c-cli" value="2500" step="50" oninput="calcMargin()">
+        </div>
+        <div class="calc-row">
+          <span class="calc-label" id="c-dep-lbl">Объём / размер</span>
+          <input class="calc-inp" type="number" id="c-dep" value="70" step="5" oninput="calcMargin()">
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Количество объектов</span>
+          <input class="calc-inp" type="number" id="c-cnt" value="1" step="1" oninput="calcMargin()">
+        </div>
+        <div class="calc-result" id="calc-result-markup"></div>
+      </div>
+
+      <!-- РЕЖИМ 2: процент от сделки -->
+      <div class="calc-block" id="calc-pct-block" style="display:none">
+        <div class="mode-hint">Подрядчик сам называет цену клиенту и платит тебе % за приведённого клиента. Ты не участвуешь в ценообразовании.</div>
+        <div class="calc-row">
+          <span class="calc-label">Сумма сделки (₽)</span>
+          <input class="calc-inp" type="number" id="p-deal" value="120000" step="5000" oninput="calcPct()">
+        </div>
+        <div class="calc-row" style="align-items:center;gap:12px;flex-wrap:wrap">
+          <span class="calc-label">Твой процент</span>
+          <div class="range-wrap">
+            <input type="range" min="3" max="30" step="1" value="10" id="p-pct" oninput="calcPct();document.getElementById('p-pct-val').textContent=this.value+'%'">
+            <span class="range-val" id="p-pct-val">10%</span>
+          </div>
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Количество сделок</span>
+          <input class="calc-inp" type="number" id="p-cnt" value="1" step="1" oninput="calcPct()">
+        </div>
+        <div class="calc-result" id="calc-result-pct"></div>
+
+        <hr class="calc-divider">
+        <div style="font-size:13px;font-weight:500;margin-bottom:.875rem;color:var(--text)">Подобрать процент</div>
+        <div class="mode-hint" style="margin-bottom:.875rem">Сколько хочешь заработать? Узнай какой % запросить у подрядчика.</div>
+        <div class="calc-row">
+          <span class="calc-label">Хочу заработать (₽)</span>
+          <input class="calc-inp" type="number" id="p-want" value="15000" step="1000" oninput="calcWant()">
+        </div>
+        <div class="calc-row">
+          <span class="calc-label">Сумма сделки (₽)</span>
+          <input class="calc-inp" type="number" id="p-deal2" value="120000" step="5000" oninput="calcWant()">
+        </div>
+        <div id="calc-want-result" style="margin-top:.875rem;padding:.875rem 1rem;background:var(--surface2);border-radius:var(--rs);font-size:13px;color:var(--text2)"></div>
+      </div>
+
+      <div class="calc-block" id="calc-hints-block"></div>
+    </div>
+
+    <!-- НАСТРОЙКИ -->
+    <div id="tab-settings" style="display:none">
+      <div class="topbar"><h1>Настройки</h1></div>
+
+      <div class="settings-block">
+        <div class="settings-title">🏙 Ниша и город</div>
+        <div class="form-grid">
+          <div class="setting-row"><label>Ниша (что ищешь)</label><input type="text" id="s-niche" placeholder="бурение скважин"><div class="setting-hint">Например: натяжные потолки, грузчики</div></div>
+          <div class="setting-row"><label>Город</label><input type="text" id="s-city" placeholder="Ставрополь"></div>
+          <div class="setting-row"><label>Slug города для Авито</label><input type="text" id="s-cityslug" placeholder="stavropol"><div class="setting-hint">avito.ru/<strong>stavropol</strong>/...</div></div>
+          <div class="setting-row"><label>Slug ниши для Авито</label><input type="text" id="s-nicheslug" placeholder="burenie_skvazhin"></div>
+          <div class="setting-row"><label>Единица цены</label><input type="text" id="s-unit" placeholder="₽/м"><div class="setting-hint">₽/м², ₽/час, ₽/объект</div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:.5rem;flex-wrap:wrap">
+          <button class="btn primary" onclick="saveNicheSettings()">Сохранить</button>
+          <button class="btn avito" onclick="openAvito()">Проверить Авито →</button>
+        </div>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-title">📋 Скрипт звонка</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6">
+          Используй <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:12px">{нишей}</code> <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:12px">{городе}</code> <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:12px">{цену}</code>
+        </p>
+        <div class="sec-label">Этап 1 — разведка цены</div>
+        <div id="script-steps-1"></div>
+        <button class="btn sm" style="margin-bottom:1rem" onclick="addStep(1)">+ Шаг</button>
+        <div class="sec-label">Этап 2 — предложение партнёрства</div>
+        <div id="script-steps-2"></div>
+        <button class="btn sm" style="margin-bottom:1rem" onclick="addStep(2)">+ Шаг</button>
+        <button class="btn primary" onclick="saveScript()">Сохранить скрипт</button>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-title">☁️ Google Sheets</div>
+        <div class="setting-row"><label>URL Apps Script</label><input type="text" id="gsheet-url" placeholder="https://script.google.com/macros/s/..."><div class="setting-hint">Инструкция в SETUP.md</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="saveGSheetUrl()">Сохранить</button>
+          <button class="btn" onclick="testConnection()">Проверить</button>
+          <button class="btn danger" onclick="clearData()">Сбросить данные</button>
+        </div>
+        <div id="conn-status" style="margin-top:10px;font-size:13px"></div>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-title">📤 Экспорт</div>
+        <button class="btn" onclick="exportCSV()">Скачать CSV</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const SL={new:"Не обзвонен",called:"Обзвонен",interested:"Заинтересован",partner:"Партнёр",declined:"Отказ",noanswer:"Не берёт трубку"};
+const NEXT={new:"called",noanswer:"called",called:"interested",interested:"partner"};
+const NEXT_LBL={new:"Обзвонен ✓",noanswer:"Дозвонился ✓",called:"Заинтересован ✓",interested:"Стал партнёром ✓"};
+const DEF_S1=[
+  {t:"«Добрый день, вы занимаетесь {нишей} в {городе}?»",h:"Подтверждаем что попали по адресу"},
+  {t:"«У меня объект, хочу услугу под ключ. Можете назвать цену?»",h:"Называй типовые параметры — получишь честную рыночную цену"},
+  {t:"«Что входит в стоимость? Всё под ключ или что-то отдельно?»",h:"Цены несравнимы без понимания комплектации"},
+  {t:"«Вы сами работаете или наёмная бригада? Своё оборудование?»",h:"Если своё — гибче по цене и надёжнее как партнёр"},
+  {t:"«Понял, спасибо. Запишу контакт — если клиент найдётся, перезвоню»",h:"Пока не раскрываемся. Фиксируем цену и звоним следующему"},
+];
+const DEF_S2=[
+  {t:"«Здравствуйте, мы с вами общались — я интересовался {нишей}. Хочу предложить сотрудничество.»",h:""},
+  {t:"«Я работаю с клиентами в {городе}, ищу надёжного подрядчика. Вы называли {цену} — актуально?»",h:"Фиксируем цену — она должна быть стабильной"},
+  {t:"«Схема простая: я передаю клиента, вы работаете по своей цене. Мою наценку клиент платит мне отдельно — вас это не касается.»",h:"Честная схема — не просим снижать цену"},
+  {t:"«Давайте попробуем на одном объекте — посмотрим как работается?»",h:""},
+];
+
+let EXP={};
+let calcMode="markup";
+let D={contractors:[],marketPrice:2200,gsheetUrl:"",niche:"бурение скважин",city:"Ставрополь",citySlug:"stavropol",nicheSlug:"burenie_skvazhin",unit:"₽/м",s1:[...DEF_S1],s2:[...DEF_S2],theme:"dark"};
+
+function load(){
+  try{const s=localStorage.getItem("broker_crm_v3");if(s)Object.assign(D,JSON.parse(s));}catch(e){}
+  if(!D.contractors)D.contractors=[];
+  if(!D.s1||!D.s1.length)D.s1=[...DEF_S1];
+  if(!D.s2||!D.s2.length)D.s2=[...DEF_S2];
+  if(!D.theme)D.theme="dark";
+  setTheme(D.theme,true);
+  if(!D.contractors.length){
+    D.contractors=[
+      {id:1,name:"Алексей Буров",phone:"+7 926 111-22-33",pricePerM:1800,depth:80,url:"https://avito.ru/stavropol",note:"Своя установка, роторное бурение",status:"interested",date:"2025-04-15"},
+      {id:2,name:"ООО АкваДрель",phone:"+7 910 555-44-22",pricePerM:2100,depth:100,url:"https://avito.ru/stavropol",note:"Бригада 3 чел, артезианские скважины",status:"called",date:"2025-04-14"},
+      {id:3,name:"Сергей Малышев",phone:"+7 903 888-77-66",pricePerM:0,depth:0,url:"",note:"",status:"new",date:"2025-04-16"},
+      {id:4,name:"ИП Фёдоров В.И.",phone:"+7 920 333-11-55",pricePerM:1650,depth:60,url:"https://avito.ru/stavropol",note:"Малогабаритная установка, заезд не нужен",status:"partner",date:"2025-04-13"},
+      {id:5,name:"БурСервис СТВ",phone:"+7 985 222-99-00",pricePerM:2800,depth:120,url:"https://avito.ru/stavropol",note:"Дорого, не интересен",status:"declined",date:"2025-04-12"},
+    ];save();
+  }
+  applyNiche();
+}
+
+function save(){
+  D.marketPrice=parseInt(document.getElementById("market-price").value)||2200;
+  try{localStorage.setItem("broker_crm_v3",JSON.stringify(D));}catch(e){}
+  syncGS();
+}
+
+// Theme
+function setTheme(t,silent){
+  D.theme=t;
+  document.body.setAttribute("data-theme",t);
+  document.querySelectorAll(".swatch").forEach(s=>s.classList.remove("active"));
+  const sw=document.querySelector(".swatch-"+t);if(sw)sw.classList.add("active");
+  if(!silent){try{localStorage.setItem("broker_crm_v3",JSON.stringify(D));}catch(e){}}
+}
+
+function applyNiche(){
+  const n=D.niche||"услуга",c=D.city||"город",u=D.unit||"₽";
+  document.getElementById("market-price").value=D.marketPrice;
+  document.getElementById("gsheet-url").value=D.gsheetUrl||"";
+  document.getElementById("s-niche").value=n;
+  document.getElementById("s-city").value=c;
+  document.getElementById("s-cityslug").value=D.citySlug||"";
+  document.getElementById("s-nicheslug").value=D.nicheSlug||"";
+  document.getElementById("s-unit").value=u;
+  document.getElementById("sidebar-sub").textContent=c+" · "+n;
+  document.getElementById("market-unit").textContent=u;
+  document.getElementById("scout-title").textContent="Разведка — "+n;
+  document.getElementById("a-price-lbl").textContent="Цена ("+u+")";
+  document.getElementById("c-sub-lbl").textContent="Цена подрядчика ("+u+")";
+  document.getElementById("c-cli-lbl").textContent="Твоя цена клиенту ("+u+")";
+  document.title=c+" · "+n+" — CRM";
+  renderScript();renderCalcHints();
+}
+
+function saveNicheSettings(){
+  D.niche=document.getElementById("s-niche").value.trim()||"услуга";
+  D.city=document.getElementById("s-city").value.trim()||"город";
+  D.citySlug=document.getElementById("s-cityslug").value.trim()||"rossiya";
+  D.nicheSlug=document.getElementById("s-nicheslug").value.trim();
+  D.unit=document.getElementById("s-unit").value.trim()||"₽";
+  save();applyNiche();renderScouting();
+  toast("Настройки сохранены ✓");
+}
+
+// Calc modes
+function setCalcMode(mode){
+  calcMode=mode;
+  document.getElementById("calc-markup-block").style.display=mode==="markup"?"block":"none";
+  document.getElementById("calc-pct-block").style.display=mode==="pct"?"block":"none";
+  document.getElementById("mode-markup").classList.toggle("active",mode==="markup");
+  document.getElementById("mode-pct").classList.toggle("active",mode==="pct");
+  if(mode==="markup")calcMargin();else{calcPct();calcWant();}
+}
+
+function calcMargin(){
+  const cp=parseInt(document.getElementById("c-sub").value)||0;
+  const cl=parseInt(document.getElementById("c-cli").value)||0;
+  const d=parseInt(document.getElementById("c-dep").value)||0;
+  const n=parseInt(document.getElementById("c-cnt").value)||1;
+  const mm=cl-cp,obj=mm*d,total=obj*n,pct=cp?Math.round(mm/cp*100):0;
+  const neg=mm<0;
+  document.getElementById("calc-result-markup").className="calc-result"+(neg?" warn":"");
+  document.getElementById("calc-result-markup").innerHTML=`
+    <div><div class="cr-label">Маржа за единицу</div><div class="cr-val">${mm.toLocaleString("ru")} ₽</div></div>
+    <div><div class="cr-label">Наценка %</div><div class="cr-val">${pct}%</div></div>
+    <div><div class="cr-label">С одного объекта</div><div class="cr-val">${obj.toLocaleString("ru")} ₽</div></div>
+    <div><div class="cr-label">С ${n} объект${n===1?"а":"ов"}</div><div class="cr-val">${total.toLocaleString("ru")} ₽</div></div>`;
+}
+
+function calcPct(){
+  const deal=parseInt(document.getElementById("p-deal").value)||0;
+  const pct=parseInt(document.getElementById("p-pct").value)||0;
+  const cnt=parseInt(document.getElementById("p-cnt").value)||1;
+  const earn=Math.round(deal*pct/100);
+  const total=earn*cnt;
+  document.getElementById("calc-result-pct").className="calc-result";
+  document.getElementById("calc-result-pct").innerHTML=`
+    <div><div class="cr-label">Твой % от сделки</div><div class="cr-val">${pct}%</div></div>
+    <div><div class="cr-label">С одной сделки</div><div class="cr-val">${earn.toLocaleString("ru")} ₽</div></div>
+    <div><div class="cr-label">Подрядчик получает</div><div class="cr-val">${(deal-earn).toLocaleString("ru")} ₽</div></div>
+    <div><div class="cr-label">С ${cnt} сделок</div><div class="cr-val">${total.toLocaleString("ru")} ₽</div></div>`;
+}
+
+function calcWant(){
+  const want=parseInt(document.getElementById("p-want").value)||0;
+  const deal=parseInt(document.getElementById("p-deal2").value)||1;
+  const pct=deal?Math.round(want/deal*100*10)/10:0;
+  const el=document.getElementById("calc-want-result");
+  el.innerHTML=pct<=0?"Введи корректные суммы":
+    pct>50?`<span style="color:var(--red)">Нужно ${pct}% — слишком много, подрядчик откажет</span>`:
+    pct>25?`<span style="color:var(--amber)">Нужно <strong>${pct}%</strong> — высоковато, но реально договориться</span>`:
+    `<span style="color:var(--green)">Нужно <strong>${pct}%</strong> — нормальный запрос, легко договориться</span>`;
+}
+
+function recalc(){renderScouting();if(calcMode==="markup")calcMargin();else{calcPct();calcWant();}}
+function renderCalcHints(){
+  const el=document.getElementById("calc-hints-block");if(!el)return;
+  el.innerHTML=`<div style="font-size:13px;font-weight:500;margin-bottom:.5rem;color:var(--text)">Ниша: ${D.niche} · ${D.city}</div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6">Типичная маржа посредника в сезон — 15–30% при наценке, или 5–15% при работе за процент от сделки.</p>`;
+}
+
+// Script
+function fill(t,price){
+  return t.replace(/{нишей}/g,D.niche||"услугой").replace(/{городе}/g,D.city||"городе").replace(/{цену}/g,price||"[цену]");
+}
+function renderScript(){
+  const el=document.getElementById("script-content");if(!el)return;
+  const u=D.unit||"₽";
+  el.innerHTML=sBlock("Этап 1 — разведка цены",D.s1,"—")+sBlock("Этап 2 — предложение партнёрства (только тем кто ниже рынка)",D.s2,"[X "+u+"]");
+}
+function sBlock(title,steps,price){
+  return`<div class="script-block"><div class="script-title">${title}</div>${(steps||[]).map((s,i)=>`<div class="script-step"><div class="snum">${i+1}</div><div><div class="stext">${fill(s.t,price)}</div>${s.h?`<div class="shint">${s.h}</div>`:""}</div></div>`).join("")}</div>`;
+}
+function renderStepEditor(){
+  [1,2].forEach(stage=>{
+    const el=document.getElementById("script-steps-"+stage);if(!el)return;
+    const arr=stage===1?D.s1:D.s2;
+    el.innerHTML=(arr||[]).map((s,i)=>`<div class="step-editor"><div class="step-editor-row"><span class="snum">${i+1}</span><div style="flex:1"><textarea data-s="${stage}" data-i="${i}" data-f="t" onblur="uptStep(this)">${s.t}</textarea><input type="text" data-s="${stage}" data-i="${i}" data-f="h" onblur="uptStep(this)" placeholder="Подсказка" value="${s.h||""}"></div><button onclick="rmStep(${stage},${i})" style="padding:4px 8px;border-radius:var(--rs);border:1px solid var(--rborder);background:var(--rbg);color:var(--red);cursor:pointer;font-size:12px;flex-shrink:0;margin-top:2px">✕</button></div></div>`).join("");
+  });
+}
+function uptStep(el){const arr=parseInt(el.dataset.s)===1?D.s1:D.s2;const s=arr[parseInt(el.dataset.i)];if(s)s[el.dataset.f]=el.value;}
+function addStep(stage){(stage===1?D.s1:D.s2).push({t:"«Новый шаг»",h:""});renderStepEditor();}
+function rmStep(stage,idx){(stage===1?D.s1:D.s2).splice(idx,1);renderStepEditor();}
+function saveScript(){document.querySelectorAll("[data-s]").forEach(el=>uptStep(el));save();renderScript();toast("Скрипт сохранён ✓");}
+
+// Sync
+let _st=null;
+function syncGS(){if(!D.gsheetUrl)return;clearTimeout(_st);_st=setTimeout(_sync,2000);}
+function _sync(){if(!D.gsheetUrl)return;setSyncBanner("Синхронизация...","");fetch(D.gsheetUrl,{method:"POST",body:JSON.stringify({action:"save",data:D.contractors}),headers:{"Content-Type":"text/plain"}}).then(r=>r.json()).then(r=>setSyncBanner(r.ok?"Синхронизировано ✓":"Ошибка",r.ok?"ok":"err")).catch(()=>setSyncBanner("Нет связи","err"));}
+function loadGS(){if(!D.gsheetUrl)return;fetch(D.gsheetUrl+"?action=load").then(r=>r.json()).then(r=>{if(r.data){D.contractors=r.data;save();renderScouting();setSyncBanner("Загружено","ok");}}).catch(()=>{});}
+function setSyncBanner(msg,cls){const el=document.getElementById("sync-status");if(!D.gsheetUrl){el.innerHTML="";return;}el.innerHTML=`<div class="sync-banner ${cls}">${msg}</div>`;}
+
+// Scouting
+function mp(){return parseInt(document.getElementById("market-price").value)||2200}
+function pcat(c){if(!c.pricePerM)return"unknown";const m=mp();return c.pricePerM<m*0.9?"below":c.pricePerM>m*1.1?"above":"unknown";}
+function pdiff(c){if(!c.pricePerM)return"";const m=mp(),d=Math.round(((c.pricePerM-m)/m)*100);if(Math.abs(d)<5)return"≈ рынок";return d<0?`−${Math.abs(d)}% рынка`:`+${d}% рынка`;}
+function ini(n){return n.split(" ").filter(Boolean).map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+
+function renderStats(){
+  const m=mp(),L=D.contractors;
+  const below=L.filter(c=>c.pricePerM&&c.pricePerM<m*0.9).length;
+  const called=L.filter(c=>c.status!=="new").length;
+  const partners=L.filter(c=>c.status==="partner").length;
+  document.getElementById("scout-stats").innerHTML=`
+    <div class="stat"><div class="stat-label">Найдено</div><div class="stat-val">${L.length}</div></div>
+    <div class="stat"><div class="stat-label">Обзвонено</div><div class="stat-val b">${called}</div></div>
+    <div class="stat"><div class="stat-label">Ниже рынка</div><div class="stat-val g">${below}</div></div>
+    <div class="stat"><div class="stat-label">Партнёры</div><div class="stat-val g">${partners}</div></div>`;
+}
+
+function renderScouting(){
+  renderStats();
+  const q=(document.getElementById("f-search").value||"").toLowerCase();
+  const sf=document.getElementById("f-status").value;
+  const pf=document.getElementById("f-price-cat").value;
+  const m=mp();
+  let L=D.contractors.filter(c=>{
+    if(sf&&c.status!==sf)return false;
+    if(pf==="below"&&!(c.pricePerM&&c.pricePerM<m*0.9))return false;
+    if(pf==="above"&&!(c.pricePerM&&c.pricePerM>m*1.1))return false;
+    if(pf==="unknown"&&c.pricePerM)return false;
+    if(q&&!(c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.note||"").toLowerCase().includes(q)))return false;
+    return true;
+  });
+  const ord={new:0,noanswer:1,called:2,interested:3,partner:4,declined:5};
+  L.sort((a,b)=>(ord[a.status]||0)-(ord[b.status]||0));
+  const el=document.getElementById("scout-list");
+  if(!L.length){el.innerHTML='<div class="empty">Нет записей</div>';return;}
+  const u=D.unit||"₽";
+  el.innerHTML=L.map(c=>{
+    const cat=pcat(c),diff=pdiff(c),exp=EXP[c.id],ns=NEXT[c.status];
+    return`<div class="card ${cat}"><div class="card-head" onclick="tog(${c.id})"><div class="avatar">${ini(c.name)}</div><div class="card-info"><div class="card-name">${c.name}</div><div class="card-sub">${c.phone}${c.depth?" · "+c.depth:""}</div><div class="card-badges"><span class="tag ${c.status}">${SL[c.status]}</span></div></div><div class="card-price">${c.pricePerM?`<div class="price-val">${c.pricePerM.toLocaleString("ru")} ${u}</div>`:`<div style="font-size:12px;color:var(--text3)">цена ?</div>`}${diff?`<div class="price-diff ${cat}">${diff}</div>`:""}</div></div>${exp?`<div class="card-detail open"><div class="detail-grid"><div class="drow"><div class="dl">Телефон</div><div class="dv" style="color:var(--blue)">${c.phone||"—"}</div></div>${c.pricePerM?`<div class="drow"><div class="dl">Цена</div><div class="dv">${c.pricePerM.toLocaleString("ru")} ${u}</div></div>`:""}${c.depth?`<div class="drow"><div class="dl">Объём</div><div class="dv">${c.depth}</div></div>`:""}${c.pricePerM&&c.depth?`<div class="drow"><div class="dl">Итого объект</div><div class="dv">${(c.pricePerM*c.depth).toLocaleString("ru")} ₽</div></div>`:""}</div><textarea class="note-ta" placeholder="Заметки..." onblur="sNote(${c.id},this.value)">${c.note||""}</textarea><div class="action-row"><button class="btn primary" onclick="callC(${c.id})">📞 Позвонить</button>${ns?`<button class="btn" onclick="adv(${c.id})">${NEXT_LBL[c.status]}</button>`:""}${cat==="below"&&c.status!=="partner"?`<button class="btn amber" onclick="prop(${c.id})">Предложить партнёрство</button>`:""}${c.status!=="declined"?`<button class="btn danger" onclick="setSt(${c.id},'declined')">Отказ</button>`:""}${c.url?`<button class="btn" onclick="window.open('${c.url}','_blank')">Авито</button>`:""}</div></div>`:""}</div>`;
+  }).join("");
+}
+
+function tog(id){EXP[id]=!EXP[id];renderScouting()}
+function setSt(id,s){const c=D.contractors.find(x=>x.id===id);if(c){c.status=s;save();renderScouting();renderPartners();}}
+function adv(id){const c=D.contractors.find(x=>x.id===id);if(c&&NEXT[c.status]){c.status=NEXT[c.status];save();renderScouting();renderPartners();}}
+function sNote(id,v){const c=D.contractors.find(x=>x.id===id);if(c){c.note=v;save();}}
+function callC(id){const c=D.contractors.find(x=>x.id===id);if(c&&c.phone)window.open("tel:"+c.phone.replace(/\D/g,""))}
+function prop(id){
+  const c=D.contractors.find(x=>x.id===id);if(!c)return;
+  const price=c.pricePerM?c.pricePerM.toLocaleString("ru")+" "+(D.unit||"₽"):"[уточни цену]";
+  const script=(D.s2||DEF_S2).map((s,i)=>`${i+1}. ${fill(s.t,price)}`).join("\n\n");
+  alert("Скрипт для "+c.name+":\n\n"+script);
+  c.status="interested";save();renderScouting();
+}
+
+function renderPartners(){
+  const P=D.contractors.filter(c=>c.status==="partner");
+  const el=document.getElementById("partners-list");
+  const u=D.unit||"₽";
+  if(!P.length){el.innerHTML='<div class="empty">Пока нет партнёров</div>';return;}
+  el.innerHTML=P.map(c=>`<div class="partner-card"><div class="partner-head"><div class="avatar">${ini(c.name)}</div><div class="card-info"><div class="card-name">${c.name}</div><div class="card-sub">${c.phone}${c.depth?" · "+c.depth:""}</div></div><div class="card-price">${c.pricePerM?`<div class="price-val">${c.pricePerM.toLocaleString("ru")} ${u}</div>`:""}<div class="price-diff below">${pdiff(c)}</div></div></div>${c.note?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">${c.note}</div>`:""}<div class="partner-actions"><button class="btn primary" onclick="callC(${c.id})">📞 Позвонить</button>${c.url?`<button class="btn" onclick="window.open('${c.url}','_blank')">Авито</button>`:""}</div></div>`).join("");
+}
+
+function toggleForm(){document.getElementById("quickForm").classList.toggle("open")}
+function addContractor(){
+  const name=document.getElementById("a-name").value.trim();if(!name)return;
+  const maxId=D.contractors.reduce((m,c)=>Math.max(m,c.id),0);
+  D.contractors.unshift({id:maxId+1,name,phone:document.getElementById("a-phone").value.trim(),pricePerM:parseInt(document.getElementById("a-price").value)||0,depth:parseInt(document.getElementById("a-depth").value)||0,url:document.getElementById("a-url").value.trim(),note:document.getElementById("a-note").value.trim(),status:"new",date:new Date().toISOString().slice(0,10)});
+  ["a-name","a-phone","a-price","a-depth","a-url","a-note"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("quickForm").classList.remove("open");
+  save();renderScouting();
+}
+
+function openAvito(){window.open("https://www.avito.ru/"+(D.citySlug||"rossiya")+"/"+(D.nicheSlug||"uslugi")+"?s=104","_blank");}
+function exportCSV(){
+  const cols=["Имя","Телефон","Цена","Объём","Статус","Заметка","Дата"];
+  const rows=D.contractors.map(c=>[c.name,c.phone,c.pricePerM||"",c.depth||"",SL[c.status],c.note||"",c.date]);
+  const csv=[cols,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,%EF%BB%BF"+encodeURIComponent(csv);a.download="crm_export.csv";a.click();
+}
+
+function saveGSheetUrl(){D.gsheetUrl=document.getElementById("gsheet-url").value.trim();save();toast("URL сохранён ✓");}
+function testConnection(){
+  const url=document.getElementById("gsheet-url").value.trim();
+  if(!url){document.getElementById("conn-status").textContent="Сначала введи URL";return;}
+  document.getElementById("conn-status").textContent="Проверяю...";
+  fetch(url+"?action=ping").then(r=>r.json()).then(r=>{const el=document.getElementById("conn-status");el.style.color=r.ok?"var(--green)":"var(--red)";el.textContent=r.ok?"Подключено!":"Ошибка — проверь URL";}).catch(()=>{document.getElementById("conn-status").style.color="var(--red)";document.getElementById("conn-status").textContent="Не удалось подключиться";});
+}
+function clearData(){if(!confirm("Удалить все данные?"))return;localStorage.removeItem("broker_crm_v3");location.reload();}
+
+function switchTab(name,el){
+  document.querySelectorAll(".nav-item,.mnav-item").forEach(n=>n.classList.remove("active"));
+  document.querySelectorAll(`[data-tab="${name}"]`).forEach(n=>n.classList.add("active"));
+  ["scouting","partners","script","calc","settings"].forEach(t=>{document.getElementById("tab-"+t).style.display=t===name?"block":"none";});
+  if(name==="partners")renderPartners();
+  if(name==="calc"){calcMargin();calcPct();calcWant();renderCalcHints();}
+  if(name==="script")renderScript();
+  if(name==="settings")renderStepEditor();
+  window.scrollTo(0,0);
+}
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.opacity="1";clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity="0",2200);}
+
+load();
+renderScouting();
+calcMargin();calcPct();calcWant();
+if(D.gsheetUrl)loadGS();
+</script>
+</body>
+</html>
